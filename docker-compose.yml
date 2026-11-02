@@ -1,0 +1,62 @@
+version: '3.7'
+
+services:
+
+  redis:
+    image: redis:8.10.3-alpine
+    container_name: redis
+
+  bookmark_service:
+    image: ebvn/bookmark-app-bookmark-service:dev
+    restart: always
+    container_name: bookmark_service
+    env_file:
+      - ./bookmark_service/.env
+    volumes:
+      - ./public.pem:/app/public.pem:Z
+
+  bookmark_worker:
+    image: ebvn/bookmark-app-import-worker:dev
+    restart: always
+    container_name: bookmark_worker
+    env_file:
+      - ./bookmark_worker/.env
+
+  user_service:
+    image: ebvn/bookmark-app-user-service:dev
+    restart: always
+    container_name: user_service
+    env_file:
+      - ./user_service/.env
+    volumes:
+      - ./public.pem:/app/public.pem:Z
+      - ./private.pem:/app/private.pem:Z
+
+  portal:
+    image: ebvn/bookmark-app-portal:ddd
+    restart: always
+    container_name: portal
+
+  postgres:
+    image: postgres:17.11-alpine
+    container_name: postgres
+    env_file:
+      - ./postgres/.env
+    volumes:
+      - postgres_data_deployment:/var/lib/postgresql/data
+      - ./postgres/init_db:/docker-entrypoint-initdb.d
+
+  nginx:
+    image: nginx:1.31.8-alpine
+    container_name: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:Z
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data_deployment:
+
+networks:
+  default:
+    name: bookmark_net
