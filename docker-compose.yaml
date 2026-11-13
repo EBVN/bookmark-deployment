@@ -8,7 +8,6 @@ services:
 
   bookmark_service:
     image: ebvn/ebvn-k06:v1.0.1
-    build: .
     restart: always
     container_name: bookmark_service
     env_file:
